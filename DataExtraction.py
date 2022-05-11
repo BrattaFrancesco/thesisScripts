@@ -3,7 +3,7 @@ import numpy as np
 import os
 import re
 import glob
-sensor_keywords = ['ACTION_DOWN_TapActivityIsUserTraining0', 'SlideActivityIsUserTraining0',
+sensor_keywords = ['TapActivityIsUserTraining0', 'SlideActivityIsUserTraining0',
                    'ScaleCircleActivityIsUserTraining0', 'ACCELEROMETER', 'GYROSCOPE', 'MAGNETOMETER']  # change this
 
 
@@ -74,6 +74,7 @@ if __name__ == '__main__':
         userPath = processedPath + user + '/'
         intakes = os.listdir(userPath)
         for intake in intakes:
+            print("Intake: " + intake)
             sensorsPath = userPath + intake + '/'
             sensors = os.listdir(sensorsPath)
             for sensor in sensors:
@@ -93,9 +94,16 @@ if __name__ == '__main__':
                         columns.append(name)
                     df.columns = columns
 
-                    for column in columns[3:]:
-                        for j in df['ROW']:
-                            if str(df.at[j, column]) != 'nan':
-                                _, df.at[j, column] = str(df.at[j, column]).split(":")
+                    for row in df['ROW']:
+                        for field in df.loc[row][3:]:
+                            if str(field) != 'nan':
+                                column, value = str(field).split(":")
+                                df.at[row, column] = value
 
+                    for column in df.columns[3:]:
+                        i = 0
+                        for row in df[column]:
+                            if len(str(row).split(":")) > 1:
+                                df.at[i, column] = ''
+                            i += 1
                 df.to_csv(sensorsPath + "/" + sensor, index=False)
