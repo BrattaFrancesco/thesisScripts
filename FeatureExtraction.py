@@ -103,7 +103,6 @@ def swipePrecisionExtraction(processedPath):
             actionDownDf = actionDownDf.drop(columns=['index'])
             df = df.drop(columns=['filter'])
 
-            # print(actionDownDf)
             i = 1
             realSwipeList = []
             while i < len(actionDownDf['ROW']) - 1:
@@ -119,16 +118,27 @@ def swipePrecisionExtraction(processedPath):
                 i += 1
             print(i, realSwipeList)
 
-            avgDistances = []
+            features = []
             for row in realSwipeList:
                 i = 0
                 distances = []
-                while not 'ACTION_UP_SlideActivityIsUserTraining0' in df[row:].at[row + i, 'SENSOR'] and i < len(
-                        df[row:]['SENSOR']) - 1:
+                xSpeeds = []
+                ySpeeds = []
+                pressures = []
+                time1 = datetime.datetime.strptime(df.at[row, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f")
+                time2 = datetime.datetime
+                while not 'ACTION_UP_SlideActivityIsUserTraining0' in df[row:].at[row + i, 'SENSOR'] and i < len(df[row:]['SENSOR']) - 1:
+                    xSpeeds.append(df.at[row + i, 'vX'])
+                    ySpeeds.append(df.at[row + i, 'vY'])
+                    pressures.append(df.at[row + i, 'p'])
                     distances.append(np.abs(yAxis - df.at[row + i, 'y']))
+                    time2 = datetime.datetime.strptime(df.at[row + i, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f")
                     i += 1
-                avgDistances.append(np.average(distances))
-            print(avgDistances)
+
+                features.append([np.average(distances), np.average(xSpeeds[1:]), np.average(ySpeeds[1:]),
+                                 np.average(pressures), np.average(xSpeeds[len(xSpeeds) - 5:]),
+                                 np.average(ySpeeds[len(ySpeeds) - 5:]), (time2 - time1).microseconds])
+            print(features)
         print()
 
 
@@ -218,6 +228,7 @@ if __name__ == '__main__':
                        '\n\t1.Tap Precision'
                        '\n\t2.SwipePrecision'
                        '\n\t3.Scaling Precision'
+                       '\n\t4.Do them all'
                        '\n\t-1.Exit'
                        '\nChoice: ')
         if choice == '1':
@@ -225,6 +236,10 @@ if __name__ == '__main__':
         elif choice == '2':
             swipePrecisionExtraction(processedPath)
         elif choice == '3':
+            scalingPrecisionExtraction(processedPath)
+        elif choice == '4':
+            tapExtraction(processedPath)
+            swipePrecisionExtraction(processedPath)
             scalingPrecisionExtraction(processedPath)
         elif choice == '-1':
             exit = True
