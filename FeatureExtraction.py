@@ -5,11 +5,20 @@ import numpy as np
 import os
 import glob
 
+def calculateSensor(intake, userPath, time1, sensorName):
+    sensorDf = pd.read_csv(userPath + intake + "/" + sensorName + ".csv", delimiter=",",
+                           skipinitialspace=True)
+    k = 0
+    while datetime.datetime.strptime(sensorDf.at[k, 'DATE\TIME'].split(" ")[1],
+                                     "%H:%M:%S.%f") < time1:
+        k += 1
+    return (np.sqrt(np.power(sensorDf.at[k, "X"], 2) + np.power(sensorDf.at[k, "Y"], 2) + np.power(sensorDf.at[k, "Z"], 2)))
 
-def tapPrecisionExtraction(processedPath):
+def tapExtraction(processedPath):
     # retrieve a list of all sensor directories
     users = os.listdir(processedPath)
     sensor = 'TapActivityIsUserTraining0.csv'
+    rows = []
 
     for user in users:
         print("Working on: " + user)
@@ -19,6 +28,7 @@ def tapPrecisionExtraction(processedPath):
             print("Intake: " + intake)
             df = pd.read_csv(userPath + intake + "/" + sensor, delimiter=",", skipinitialspace=True)
 
+            # drop duplicated tap
             df['filter'] = np.where(df['SENSOR'].str.contains('ACTION_DOWN_TapActivityIsUserTraining0', na=False), True, False)
             actionDownDf = df[df['filter'] == True]
             actionDownDf.reset_index(inplace=True, drop=False)
@@ -32,32 +42,44 @@ def tapPrecisionExtraction(processedPath):
                 i += 1
             print("Row number:" + str(i), "Rows to drop" + str(dropList))
             df = df.drop(df.index[dropList])
-            df.to_csv("/home/francesco/Desktop/x.csv", index=False)
             df.reset_index(inplace=True, drop=False)
+
+            # calculate features
             i = 0
-            rows = []
             while i < len(df['ROW']):
-                row = []
+                row = [user]
+                j = i + 1
                 if df.at[i, 'SENSOR'] == "ACTION_DOWN_TapActivityIsUserTraining0 ":
-                    #tapPrecision
-                    row.append(["precision", np.sqrt(np.power((df.at[i, 'x'] - df.at[i, 'xCenterButton']), 2) + np.power(
-                        (df.at[i, 'y'] - df.at[i, 'yCenterButton']), 2))])
-                    #pressure
-                    row.append(["pressure", df.at[i, 'p']])
-                    #duration
-                    j = i + 1
+                    # tapPrecision
+                    row.append(np.sqrt(np.power((df.at[i, 'x'] - df.at[i, 'xCenterButton']), 2) + np.power(
+                        (df.at[i, 'y'] - df.at[i, 'yCenterButton']), 2)))
+                    # pressure
+                    row.append(df.at[i, 'p'])
+                    # duration
                     while j < len(df['ROW']):
                         if df.at[j, 'SENSOR'] == 'ACTION_UP_TapActivityIsUserTraining0 ':
                             time1 = datetime.datetime.strptime(df.at[i, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f")
                             time2 = datetime.datetime.strptime(df.at[j, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f")
-                            row.append(["duration", (time2-time1).microseconds])
+                            row.append((time2-time1).microseconds)
+
+                            positionalSensors = ['ACCELEROMETER', 'GYROSCOPE', 'MAGNETOMETER']
+                            for positionalSensor in positionalSensors:
+                                if positionalSensor == 'ACCELEROMETER':
+                                    row.append(calculateSensor(intake, userPath, time1, positionalSensor))
+                                elif positionalSensor == 'GYROSCOPE':
+                                    row.append(calculateSensor(intake, userPath, time1, positionalSensor))
+                                elif positionalSensor == 'MAGNETOMETER':
+                                    row.append(calculateSensor(intake, userPath, time1, positionalSensor))
                             break
                         j += 1
                     rows.append(row)
-                i += 1
+                i = j
             print("Length: " + str(len(rows)) + str(rows))
         print()
-
+    featureDf = pd.DataFrame(rows, columns=["UT", "precision", "pressure", "duration", "acceleration", "rotation", "magneticField"])
+    if not os.path.isdir(path_dataset + "/features/"):
+        os.mkdir(path_dataset + "/features/")
+    featureDf.to_csv(path_dataset + "/features/" + sensor, sep=';')
 
 def swipePrecisionExtraction(processedPath):
     yAxis = 1113
@@ -199,7 +221,7 @@ if __name__ == '__main__':
                        '\n\t-1.Exit'
                        '\nChoice: ')
         if choice == '1':
-            tapPrecisionExtraction(processedPath)
+            tapExtraction(processedPath)
         elif choice == '2':
             swipePrecisionExtraction(processedPath)
         elif choice == '3':
