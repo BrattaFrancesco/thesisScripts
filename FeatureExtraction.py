@@ -1,3 +1,5 @@
+import datetime
+
 import pandas as pd
 import numpy as np
 import os
@@ -7,7 +9,7 @@ import glob
 def tapPrecisionExtraction(processedPath):
     # retrieve a list of all sensor directories
     users = os.listdir(processedPath)
-    sensor = 'ACTION_DOWN_TapActivityIsUserTraining0.csv'
+    sensor = 'TapActivityIsUserTraining0.csv'
 
     for user in users:
         print("Working on: " + user)
@@ -16,23 +18,44 @@ def tapPrecisionExtraction(processedPath):
         for intake in intakes:
             print("Intake: " + intake)
             df = pd.read_csv(userPath + intake + "/" + sensor, delimiter=",", skipinitialspace=True)
+
+            df['filter'] = np.where(df['SENSOR'].str.contains('ACTION_DOWN_TapActivityIsUserTraining0', na=False), True, False)
+            actionDownDf = df[df['filter'] == True]
+            actionDownDf.reset_index(inplace=True, drop=False)
+            actionDownDf = actionDownDf.drop(columns=['index'])
+            df = df.drop(columns=['filter'])
             i = 0
             dropList = []
-            while i < len(df['ROW']) - 1:
-                if df.at[i, 'N'] == df.at[i + 1, 'N']:
-                    dropList.append(df.index[i])
+            while i < len(actionDownDf['ROW']) - 1:
+                if actionDownDf.at[i, 'N'] == actionDownDf.at[i + 1, 'N']:
+                    dropList.append(actionDownDf.at[i, 'ROW'])
                 i += 1
-            print(i, dropList)
+            print("Row number:" + str(i), "Rows to drop" + str(dropList))
             df = df.drop(df.index[dropList])
+            df.to_csv("/home/francesco/Desktop/x.csv", index=False)
             df.reset_index(inplace=True, drop=False)
-
             i = 0
-            precisionList = []
+            rows = []
             while i < len(df['ROW']):
-                precisionList.append(np.sqrt(np.power((df.at[i, 'x'] - df.at[i, 'xCenterButton']), 2) + np.power(
-                    (df.at[i, 'y'] - df.at[i, 'yCenterButton']), 2)))
+                row = []
+                if df.at[i, 'SENSOR'] == "ACTION_DOWN_TapActivityIsUserTraining0 ":
+                    #tapPrecision
+                    row.append(["precision", np.sqrt(np.power((df.at[i, 'x'] - df.at[i, 'xCenterButton']), 2) + np.power(
+                        (df.at[i, 'y'] - df.at[i, 'yCenterButton']), 2))])
+                    #pressure
+                    row.append(["pressure", df.at[i, 'p']])
+                    #duration
+                    j = i + 1
+                    while j < len(df['ROW']):
+                        if df.at[j, 'SENSOR'] == 'ACTION_UP_TapActivityIsUserTraining0 ':
+                            time1 = datetime.datetime.strptime(df.at[i, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f")
+                            time2 = datetime.datetime.strptime(df.at[j, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f")
+                            row.append(["duration", (time2-time1).microseconds])
+                            break
+                        j += 1
+                    rows.append(row)
                 i += 1
-            print(precisionList)
+            print("Length: " + str(len(rows)) + str(rows))
         print()
 
 
@@ -170,7 +193,7 @@ if __name__ == '__main__':
     exit = False
     while exit != True:
         choice = input('What kind of extraction you want to do?'
-                       '\n\t1.Tap Precision.'
+                       '\n\t1.Tap Precision'
                        '\n\t2.SwipePrecision'
                        '\n\t3.Scaling Precision'
                        '\n\t-1.Exit'
