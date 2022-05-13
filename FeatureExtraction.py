@@ -86,6 +86,7 @@ def swipePrecisionExtraction(processedPath):
     # retrieve a list of all sensor directories
     users = os.listdir(processedPath)
     sensor = 'SlideActivityIsUserTraining0.csv'
+    features = []
 
     for user in users:
         print("Working on: " + user)
@@ -118,13 +119,15 @@ def swipePrecisionExtraction(processedPath):
                 i += 1
             print(i, realSwipeList)
 
-            features = []
             for row in realSwipeList:
                 i = 0
                 distances = []
                 xSpeeds = []
                 ySpeeds = []
                 pressures = []
+                accelerations = []
+                rotations = []
+                magneticFields = []
                 time1 = datetime.datetime.strptime(df.at[row, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f")
                 time2 = datetime.datetime
                 while not 'ACTION_UP_SlideActivityIsUserTraining0' in df[row:].at[row + i, 'SENSOR'] and i < len(df[row:]['SENSOR']) - 1:
@@ -133,13 +136,29 @@ def swipePrecisionExtraction(processedPath):
                     pressures.append(df.at[row + i, 'p'])
                     distances.append(np.abs(yAxis - df.at[row + i, 'y']))
                     time2 = datetime.datetime.strptime(df.at[row + i, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f")
+
+                    positionalSensors = ['ACCELEROMETER', 'GYROSCOPE', 'MAGNETOMETER']
+                    for positionalSensor in positionalSensors:
+                        if positionalSensor == 'ACCELEROMETER':
+                            accelerations.append(calculateSensor(intake, userPath, time2, positionalSensor))
+                        elif positionalSensor == 'GYROSCOPE':
+                            rotations.append(calculateSensor(intake, userPath, time2, positionalSensor))
+                        elif positionalSensor == 'MAGNETOMETER':
+                            magneticFields.append(calculateSensor(intake, userPath, time2, positionalSensor))
                     i += 1
 
-                features.append([np.average(distances), np.average(xSpeeds[1:]), np.average(ySpeeds[1:]),
+                features.append([user, np.average(distances), np.average(xSpeeds[1:]), np.average(ySpeeds[1:]),
                                  np.average(pressures), np.average(xSpeeds[len(xSpeeds) - 5:]),
-                                 np.average(ySpeeds[len(ySpeeds) - 5:]), (time2 - time1).microseconds])
+                                 np.average(ySpeeds[len(ySpeeds) - 5:]), (time2 - time1).microseconds,
+                                 np.average(accelerations), np.average(rotations), np.average(magneticFields)])
             print(features)
         print()
+    featureDf = pd.DataFrame(features, columns=["UT", "precision", "avgXSpeed", "avgYSpeed", "avgPressure",
+                                                "xMedianSpeedOfLast5Points", "yMedianSpeedOfLast5Points", "duration",
+                                                "avgAcceleration", "avgRotation", "avgMagneticField"])
+    if not os.path.isdir(path_dataset + "/features/"):
+        os.mkdir(path_dataset + "/features/")
+    featureDf.to_csv(path_dataset + "/features/" + sensor, sep=';')
 
 
 def scalingPrecisionExtraction(processedPath):
