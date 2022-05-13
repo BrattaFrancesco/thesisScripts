@@ -1,4 +1,5 @@
 import datetime
+import time
 
 import pandas as pd
 import numpy as np
@@ -167,6 +168,8 @@ def scalingPrecisionExtraction(processedPath):
     # retrieve a list of all sensor directories
     users = os.listdir(processedPath)
     sensor = 'ScaleCircleActivityIsUserTraining0.csv'
+    finger0features = []
+    finger1features = []
 
     for user in users:
         print("Working on: " + user)
@@ -194,16 +197,42 @@ def scalingPrecisionExtraction(processedPath):
                 i += 1
             print(i, scaleList)
 
-            finger0Distances = []
+            finger0xSpeeds = []
+            finger0ySpeeds = []
+            finger0pressures = []
+            finger0accelerations = []
+            finger0rotations = []
+            finger0magneticFields = []
             for row in scaleList:
                 i = 0
+                finger0time1 = datetime.datetime.strptime(df.at[row, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f")
+                finger0time2 = datetime.datetime
                 while not 'ACTION_UP_ScaleCircleActivityIsUserTraining0' in df[row:].at[row + i, 'SENSOR'] and i < len(
                         df[row:]['SENSOR']) - 1:
+                    if str(df.at[row + i, 'vX']) != 'nan':
+                        finger0xSpeeds.append(df.at[row + i, 'vX'])
+                    if str(df.at[row + i, 'vY']) != 'nan':
+                        finger0ySpeeds.append(df.at[row + i, 'vY'])
+                    if str(df.at[row + i, 'p']) != 'nan':
+                        finger0pressures.append(df.at[row + i, 'p'])
+                    finger0time2 = datetime.datetime.strptime(df.at[row + i, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f")
+
+                    positionalSensors = ['ACCELEROMETER', 'GYROSCOPE', 'MAGNETOMETER']
+                    for positionalSensor in positionalSensors:
+                        if positionalSensor == 'ACCELEROMETER':
+                            finger0accelerations.append(calculateSensor(intake, userPath, finger0time2, positionalSensor))
+                        elif positionalSensor == 'GYROSCOPE':
+                            finger0rotations.append(calculateSensor(intake, userPath, finger0time2, positionalSensor))
+                        elif positionalSensor == 'MAGNETOMETER':
+                            finger0magneticFields.append(calculateSensor(intake, userPath, finger0time2, positionalSensor))
                     i += 1
-                finger0Distances.append(np.sqrt(
-                    np.power((df.at[row + i, 'x'] - xCenterPoint), 2) + np.power((df.at[row + i, 'y'] - yCenterPoint),
-                                                                                 2)))
-            print(finger0Distances)
+                finger0features.append([user, np.sqrt(np.power((df.at[row + i, 'x'] - xCenterPoint), 2) +
+                                np.power((df.at[row + i, 'y'] - yCenterPoint),2)),
+                                np.average(finger0xSpeeds[1:]),
+                                np.average(finger0ySpeeds[1:]),
+                                np.average(finger0pressures), np.average(finger0xSpeeds[len(finger0xSpeeds) - 5:]),
+                                np.average(finger0ySpeeds[len(finger0ySpeeds) - 5:]), (finger0time2 - finger0time1).microseconds,
+                                np.average(finger0accelerations), np.average(finger0rotations), np.average(finger0magneticFields)])
 
             # let's create a dataframe with all the data that we need, based on the word in input
             df['filter'] = np.where(
@@ -224,16 +253,59 @@ def scalingPrecisionExtraction(processedPath):
                 i += 1
             print(i, scaleList)
 
-            finger1Distances = []
+            finger1xSpeeds = []
+            finger1ySpeeds = []
+            finger1pressures = []
+            finger1accelerations = []
+            finger1rotations = []
+            finger1magneticFields = []
             for row in scaleList:
                 i = 0
-                while not 'ACTION_POINTER_UP_ScaleCircleActivityIsUserTraining0' in df[row:].at[
-                    row + i, 'SENSOR'] and i < len(df[row:]['SENSOR']) - 1:
+                finger0time1 = datetime.datetime.strptime(df.at[row, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f")
+                finger0time2 = datetime.datetime
+                while not 'ACTION_POINTER_UP_ScaleCircleActivityIsUserTraining0' in df[row:].at[row + i, 'SENSOR'] and i < len(
+                        df[row:]['SENSOR']) - 1:
+                    if str(df.at[row + i, 'vX']) != 'nan':
+                        finger1xSpeeds.append(df.at[row + i, 'vX'])
+                    if str(df.at[row + i, 'vY']) != 'nan':
+                        finger1ySpeeds.append(df.at[row + i, 'vY'])
+                    if str(df.at[row + i, 'p']) != 'nan':
+                        finger1pressures.append(df.at[row + i, 'p'])
+                    finger0time2 = datetime.datetime.strptime(df.at[row + i, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f")
+
+                    positionalSensors = ['ACCELEROMETER', 'GYROSCOPE', 'MAGNETOMETER']
+                    for positionalSensor in positionalSensors:
+                        if positionalSensor == 'ACCELEROMETER':
+                            finger1accelerations.append(calculateSensor(intake, userPath, finger0time2, positionalSensor))
+                        elif positionalSensor == 'GYROSCOPE':
+                            finger1rotations.append(calculateSensor(intake, userPath, finger0time2, positionalSensor))
+                        elif positionalSensor == 'MAGNETOMETER':
+                            finger1magneticFields.append(calculateSensor(intake, userPath, finger0time2, positionalSensor))
                     i += 1
-                finger1Distances.append(np.sqrt(
-                    np.power((df.at[row + i, 'x'] - xCenterPoint), 2) + np.power((df.at[row + i, 'y'] - yCenterPoint), 2)))
-            print(finger1Distances)
+                finger1features.append([user, np.sqrt(np.power((df.at[row + i, 'x'] - xCenterPoint), 2) +
+                                np.power((df.at[row + i, 'y'] - yCenterPoint),2)),
+                                np.average(finger1xSpeeds[1:]),
+                                np.average(finger1ySpeeds[1:]),
+                                np.average(finger1pressures), np.average(finger1xSpeeds[len(finger1xSpeeds) - 5:]),
+                                np.average(finger1ySpeeds[len(finger1ySpeeds) - 5:]), (finger0time2 - finger0time1).microseconds,
+                                np.average(finger1accelerations), np.average(finger1rotations), np.average(finger1magneticFields)])
         print()
+
+    i = 0
+    features = []
+    while i < len(finger0features):
+        features.append(finger0features[i] + finger1features[i][1:])
+        i += 1
+    featureDf = pd.DataFrame(features, columns=["UT", "centerDistanceXf0", "avgXSpeedf0", "avgYSpeedf0", "avgPressuref0",
+                                                "xMedianSpeedOfLast5Pointsf0", "yMedianSpeedOfLast5Pointsf0", "durationf0",
+                                                "avgAccelerationf0", "avgRotationf0", "avgMagneticFieldf0",
+                                                "centerDistanceXf1", "avgXSpeedf1", "avgYSpeedf1", "avgPressuref1",
+                                                "xMedianSpeedOfLast5Pointsf1", "yMedianSpeedOfLast5Pointsf1",
+                                                "durationf1", "avgAccelerationf1", "avgRotationf1", "avgMagneticFieldf1"])
+
+    if not os.path.isdir(path_dataset + "/features/"):
+        os.mkdir(path_dataset + "/features/")
+    featureDf.to_csv(path_dataset + "/features/" + sensor, sep=';')
 
 
 if __name__ == '__main__':
@@ -250,6 +322,7 @@ if __name__ == '__main__':
                        '\n\t4.Do them all'
                        '\n\t-1.Exit'
                        '\nChoice: ')
+        start_time = time.time()
         if choice == '1':
             tapExtraction(processedPath)
         elif choice == '2':
@@ -265,3 +338,4 @@ if __name__ == '__main__':
             print("Bye")
         else:
             print("Wrong choice")
+        print("Completed in: " + str(time.time() - start_time) + "s")
