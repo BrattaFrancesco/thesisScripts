@@ -1,3 +1,5 @@
+import time
+
 import pandas as pd
 import numpy as np
 import os
@@ -23,6 +25,7 @@ if __name__ == '__main__':
     # retrieve a list of all raw sensor files
     directories = os.listdir(sourcePath)
 
+    start_time = time.time()
     #Split raw sensor data into different files
     for direcotry in directories:
         print("Working on " + direcotry)
@@ -107,3 +110,4 @@ if __name__ == '__main__':
                                 df.at[i, column] = ''
                             i += 1
                 df.to_csv(sensorsPath + "/" + sensor, index=False)
+    print("Completed in: " + str(time.time() - start_time) + "s")
