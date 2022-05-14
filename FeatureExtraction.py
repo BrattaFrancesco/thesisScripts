@@ -152,7 +152,6 @@ def swipePrecisionExtraction(processedPath):
                                  np.average(pressures), np.average(xSpeeds[len(xSpeeds) - 5:]),
                                  np.average(ySpeeds[len(ySpeeds) - 5:]), (time2 - time1).microseconds,
                                  np.average(accelerations), np.average(rotations), np.average(magneticFields)])
-            print(features)
         print()
     featureDf = pd.DataFrame(features, columns=["UT", "precision", "avgXSpeed", "avgYSpeed", "avgPressure",
                                                 "xMedianSpeedOfLast5Points", "yMedianSpeedOfLast5Points", "duration",
@@ -291,6 +290,7 @@ def scalingPrecisionExtraction(processedPath):
                                 np.average(finger1accelerations), np.average(finger1rotations), np.average(finger1magneticFields)])
         print()
 
+    print("Creating the csv file...")
     i = 0
     features = []
     while i < len(finger0features):
