@@ -4,7 +4,6 @@ import time
 import pandas as pd
 import numpy as np
 import os
-import glob
 
 def calculateSensor(intake, userPath, time1, sensorName):
     sensorDf = pd.read_csv(userPath + intake + "/" + sensorName + ".csv", delimiter=",",
