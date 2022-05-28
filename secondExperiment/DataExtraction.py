@@ -5,8 +5,8 @@ import numpy as np
 import os
 import re
 import glob
+#For Windows only
 sensor_keywords = ['ACTION', 'ACCELEROMETER', 'GYROSCOPE', 'MAGNETOMETER']  # change this
-
 
 # This function determs the columns number of the database
 def findNumberOfColumns(a):
