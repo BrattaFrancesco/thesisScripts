@@ -5,24 +5,23 @@ import pandas as pd
 import numpy as np
 import os
 
-def progress(percent, n, width=40):
-    left = width * percent // n
+def progress(percent, width=50):
+    left = width * percent // 100
     right = width - left
 
     tags = "#" * left
     spaces = " " * right
-    percents = f"{percent//100:.0f}%"
+    percents = f"{percent:.0f}%"
 
     print("\r[", tags, spaces, "]", percents, sep="", end="", flush=True)
 
-def calculateSensor(userPath, time1, sensorName):
+def calculateSensor(userPath, time1, sensorName, k):
     sensorDf = pd.read_csv(userPath + "/" + sensorName + ".csv", delimiter=",",
                            skipinitialspace=True)
-    k = 0
-    while datetime.datetime.strptime(sensorDf.at[k, 'DATE\TIME'].split(" ")[1],
-                                     "%H:%M:%S.%f") < time1:
+
+    while datetime.datetime.strptime(sensorDf.at[k, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f") < time1:
         k += 1
-    return (np.sqrt(np.power(sensorDf.at[k, "X"], 2) + np.power(sensorDf.at[k, "Y"], 2) + np.power(sensorDf.at[k, "Z"], 2)))
+    return k, (np.sqrt(np.power(sensorDf.at[k, "X"], 2) + np.power(sensorDf.at[k, "Y"], 2) + np.power(sensorDf.at[k, "Z"], 2)))
 
 def tapExtraction(processedPath):
     # retrieve a list of all sensor directories
@@ -44,8 +43,9 @@ def tapExtraction(processedPath):
 
         # calculate features
         i = 0
+        positionalSensors = [['ACCELEROMETER', 0], ['GYROSCOPE', 0], ['MAGNETOMETER', 0]]
         while i < len(df['ROW']):
-            progress(i, len(df['ROW']))
+            progress(int(i/len(df["ROW"])*100))
             row = [user]
             j = i + 1
             if "ACTION_DOWN" in df.at[i, 'SENSOR']:
@@ -66,14 +66,16 @@ def tapExtraction(processedPath):
                         time2 = datetime.datetime.strptime(df.at[j, 'DATE\TIME'].split(" ")[1], "%H:%M:%S.%f")
                         row.append((time2-time1).microseconds)
 
-                        positionalSensors = ['ACCELEROMETER', 'GYROSCOPE', 'MAGNETOMETER']
                         for positionalSensor in positionalSensors:
-                            if positionalSensor == 'ACCELEROMETER':
-                                row.append(calculateSensor(userPath, time1, positionalSensor))
-                            elif positionalSensor == 'GYROSCOPE':
-                                row.append(calculateSensor(userPath, time1, positionalSensor))
-                            elif positionalSensor == 'MAGNETOMETER':
-                                row.append(calculateSensor(userPath, time1, positionalSensor))
+                            if positionalSensor[0] == 'ACCELEROMETER':
+                                positionalSensor[1], value = calculateSensor(userPath, time1, positionalSensor[0], positionalSensor[1])
+                                row.append(value)
+                            elif positionalSensor[0] == 'GYROSCOPE':
+                                positionalSensor[1], value = calculateSensor(userPath, time1, positionalSensor[0], positionalSensor[1])
+                                row.append(value)
+                            elif positionalSensor[0] == 'MAGNETOMETER':
+                                positionalSensor[1], value = calculateSensor(userPath, time1, positionalSensor[0], positionalSensor[1])
+                                row.append(value)
                         break
                     j += 1
                 rows.append(row)
@@ -86,13 +88,13 @@ def tapExtraction(processedPath):
     featureDf.to_csv(processedPath + "../features/features.csv", sep=';')
 
 if __name__ == '__main__':
-    second_experiment = '/home/francesco/PycharmProjects/Thesis/secondExperimentDataset/'
-    os.chdir(second_experiment)
-    tests = os.listdir(second_experiment)
+    second_experiment_dataset = '/home/francesco/PycharmProjects/Thesis/secondExperiment/Dataset/'
+    os.chdir(second_experiment_dataset)
+    tests = os.listdir(second_experiment_dataset)
 
     for test in tests:
         print("Test: ", test)
-        processedPath = second_experiment + test + "/processed/"
+        processedPath = second_experiment_dataset + test + "/processed/"
         start_time = time.time()
         tapExtraction(processedPath)
         print("Completed in: " + str(time.time() - start_time) + "s")
