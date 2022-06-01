@@ -19,9 +19,9 @@ from sklearn.tree import DecisionTreeClassifier, ExtraTreeClassifier
 
 if __name__ == '__main__':
     task = list()
-    task.append(["TapActivityIsUserTraining0", pd.read_csv("../features/TapActivityIsUserTraining0.csv", delimiter=";", skipinitialspace=True)])
-    task.append(["SlideActivityIsUserTraining0", pd.read_csv("../features/SlideActivityIsUserTraining0.csv", delimiter=";", skipinitialspace=True)])
-    task.append(["ScaleCircleActivityIsUserTraining0", pd.read_csv("../features/ScaleCircleActivityIsUserTraining0.csv", delimiter=";", skipinitialspace=True)])
+    task.append(["TapActivityIsUserTraining0", pd.read_csv("features/TapActivityIsUserTraining0.csv", delimiter=";", skipinitialspace=True)])
+    task.append(["SlideActivityIsUserTraining0", pd.read_csv("features/SlideActivityIsUserTraining0.csv", delimiter=";", skipinitialspace=True)])
+    task.append(["ScaleCircleActivityIsUserTraining0", pd.read_csv("features/ScaleCircleActivityIsUserTraining0.csv", delimiter=";", skipinitialspace=True)])
 
     models = list()
     # models.append(LogisticRegression())

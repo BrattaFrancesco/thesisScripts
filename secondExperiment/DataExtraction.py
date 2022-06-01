@@ -5,7 +5,6 @@ import numpy as np
 import os
 import re
 import glob
-#For Windows only
 sensor_keywords = ['ACTION', 'ACCELEROMETER', 'GYROSCOPE', 'MAGNETOMETER']  # change this
 
 # This function determs the columns number of the database
@@ -18,9 +17,9 @@ def findNumberOfColumns(a):
 
 
 if __name__ == '__main__':
-    path_dataset = 'C:\\Users\\Francesco\\Desktop\\DataSet\\Test1'
+    path_dataset = '/home/francesco/PycharmProjects/Thesis/secondExperiment'
     os.chdir(path_dataset)
-    sourcePath = path_dataset + "\\raw\\"
+    sourcePath = path_dataset + "/raw/"
     # retrieve a list of all raw sensor files
     files = os.listdir(sourcePath)
 
@@ -30,7 +29,7 @@ if __name__ == '__main__':
         print("Working on " + file)
         for word in sensor_keywords:
             if file != 'survey':
-                df = pd.read_csv(sourcePath + "\\" + file, delimiter="-", skipinitialspace=True, names=["DATE\TIME", "SENSOR", "VALUE"])
+                df = pd.read_csv(sourcePath + "/" + file, delimiter="-", skipinitialspace=True, names=["DATE\TIME", "SENSOR", "VALUE"])
 
                 # let's create a dataframe with all the data that we need, based on the word in input
                 df['mask_df1'] = np.where(df['SENSOR'].str.contains(word, na=False), True, False)
@@ -55,25 +54,25 @@ if __name__ == '__main__':
                     i += 1
 
                 w1, w2 = str(file).split(".")
-                if not os.path.isdir(path_dataset + '\processed\\' + w1 + '\\'):
-                    if not os.path.isdir(path_dataset + '\processed\\'):
-                        os.mkdir(path_dataset + '\\processed\\')
-                    os.mkdir(path_dataset + '\\processed\\' + w1 + '\\')
+                if not os.path.isdir(path_dataset + '/processed/' + w1 + '/'):
+                    if not os.path.isdir(path_dataset + '/processed/'):
+                        os.mkdir(path_dataset + '/processed/')
+                    os.mkdir(path_dataset + '/processed/' + w1 + '/')
 
-                df1.to_csv(path_dataset + '\\processed\\' + w1 + '\\' + word + '.csv')
+                df1.to_csv(path_dataset + '/processed/' + w1 + '/' + word + '.csv')
     print()
 
     #Edit the tables adding headers and removing useless label
-    processedPath = path_dataset + "\\processed\\"
+    processedPath = path_dataset + "/processed/"
     users = os.listdir(processedPath)
 
     for user in users:
         print("Edit headers...")
         print("Working on " + user)
-        userPath = processedPath + user + '\\'
+        userPath = processedPath + user + '/'
         sensors = os.listdir(userPath)
         for sensor in sensors:
-            df = pd.read_csv(userPath + "\\" + sensor, delimiter=",", skipinitialspace=True)
+            df = pd.read_csv(userPath + "/" + sensor, delimiter=",", skipinitialspace=True)
             df = df.iloc[:, 0:-3]
             if 'ACCELEROMETER' in sensor or 'GYROSCOPE' in sensor or 'MAGNETOMETER' in sensor:
                 df.columns = ['ROW', 'DATE\TIME', 'SENSOR', 'X', 'Y', 'Z']

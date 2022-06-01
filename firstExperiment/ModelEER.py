@@ -45,7 +45,7 @@ def compute_eer(label, pred, positive_label=1):
 
 
 if __name__ == '__main__':
-    taps = pd.read_csv("../features/ScaleCircleActivityIsUserTraining0.csv", delimiter=";", skipinitialspace=True)
+    taps = pd.read_csv("features/ScaleCircleActivityIsUserTraining0.csv", delimiter=";", skipinitialspace=True)
     mm = make_pipeline(MinMaxScaler(), Normalizer())
 
     X_train, X_test, y_train, y_test = train_test_split(

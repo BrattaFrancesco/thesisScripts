@@ -308,7 +308,7 @@ def scalingPrecisionExtraction(processedPath):
 
 
 if __name__ == '__main__':
-    path_dataset = '/'
+    path_dataset = '/home/francesco/PycharmProjects/Thesis/firstExperiment/'
     os.chdir(path_dataset)
     processedPath = path_dataset + "/processed/"
 
