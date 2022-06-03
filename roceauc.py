@@ -16,7 +16,7 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.pipeline import Pipeline
 
 if __name__ == '__main__':
-    featuresPath = "/home/francesco/PycharmProjects/Thesis/firstExperiment/features/"
+    featuresPath = "/home/francesco/PycharmProjects/Thesis/features/"
 
     models = []
     models.append(RandomForestClassifier(max_depth=100, n_estimators=500))
