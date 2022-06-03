@@ -16,7 +16,7 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.pipeline import Pipeline
 
 if __name__ == '__main__':
-    featuresPath = "/home/francesco/PycharmProjects/Thesis/features/"
+    featuresPath = "/home/francesco/PycharmProjects/Thesis/secondExperiment/features/"
 
     models = []
     models.append(RandomForestClassifier(max_depth=100, n_estimators=500))
@@ -37,8 +37,13 @@ if __name__ == '__main__':
             lw = 1
 
             # Binarize the output
-            y_bin = label_binarize(y, classes=[0, 1, 2, 3, 4, 5])
-            n_classes = y_bin.shape[1]
+            n_classes = 0
+            if "Test1" in file:
+                n_classes = len(os.listdir("/home/francesco/PycharmProjects/Thesis/secondExperiment/Dataset/Test1/processed"))
+            elif "Test2" in file:
+                n_classes = len(
+                    os.listdir("/home/francesco/PycharmProjects/Thesis/secondExperiment/Dataset/Test2/processed"))
+            y_bin = label_binarize(y, classes=range(n_classes))
             print("N classes: ", n_classes)
             # Fit the model with a 10-fold cross validation method
             pipe = Pipeline([('scaler', MinMaxScaler()), ('clf', model)])
@@ -58,9 +63,9 @@ if __name__ == '__main__':
 
             # Print the roc curve
             for i, color in zip(range(n_classes), colors):
-                plt.plot(fpr[i], tpr[i], color=color, lw=lw,
-                         label='ROC curve of class {0} (AUC = {1:0.2f}) (EER = {2:0.2f}%)'
-                               ''.format(i, roc_auc[i], fpr[i][np.nanargmin(np.absolute((fnr[i] - fpr[i])))] * 100))
+                plt.plot(fpr[i], tpr[i], color=color, lw=lw)
+                print('ROC curve of class {0} (AUC = {1:0.2f}) (EER = {2:0.2f}%)'
+                      .format(i, roc_auc[i], fpr[i][np.nanargmin(np.absolute((fnr[i] - fpr[i])))] * 100))
                 # print("EER class ", i, ": ", fpr[i][np.nanargmin(np.absolute((fnr[i] - fpr[i])))]*100, "%")
             print()
             plt.plot([0, 1], [0, 1], 'k--', lw=lw)
