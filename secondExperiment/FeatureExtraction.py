@@ -80,7 +80,6 @@ def tapExtraction(processedPath):
                     j += 1
                 rows.append(row)
             i = j
-        print("Length: " + str(len(rows)) + str(rows))
     print()
     featureDf = pd.DataFrame(rows, columns=["UT", "x", "y", "pressure", "surface", "duration", "acceleration", "rotation", "magneticField"])
     if not os.path.isdir(processedPath + "../features/"):

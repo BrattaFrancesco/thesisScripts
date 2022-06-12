@@ -17,7 +17,7 @@ def findNumberOfColumns(a):
 
 
 if __name__ == '__main__':
-    path_dataset = '/home/francesco/PycharmProjects/Thesis/secondExperiment'
+    path_dataset = '/home/francesco/PycharmProjects/Thesis/secondExperiment/Dataset/Test2'
     os.chdir(path_dataset)
     sourcePath = path_dataset + "/raw/"
     # retrieve a list of all raw sensor files
@@ -101,5 +101,5 @@ if __name__ == '__main__':
                         if len(str(row).split(":")) > 1:
                             df.at[i, column] = ''
                         i += 1
-            df.to_csv(userPath + "\\" + sensor, index=False)
+            df.to_csv(userPath + "/" + sensor, index=False)
 print("Completed in: " + str(time.time() - start_time) + "s")

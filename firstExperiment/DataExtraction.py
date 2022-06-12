@@ -19,7 +19,7 @@ def findNumberOfColumns(a):
 
 
 if __name__ == '__main__':
-    path_dataset = '/home/francesco/PycharmProjects/Thesis/firstExperiment/'
+    path_dataset = '/home/francesco/PycharmProjects/Thesis/firstExperiment'
     os.chdir(path_dataset)
     sourcePath = path_dataset + "/raw/"
     # retrieve a list of all raw sensor files
@@ -61,6 +61,8 @@ if __name__ == '__main__':
                     w1, w2 = str(file).split(".")
                     if not os.path.isdir(path_dataset + '/processed/' + direcotry + '/' + w1 + '/'):
                         if not os.path.isdir(path_dataset + '/processed/' + direcotry + '/'):
+                            if not os.path.isdir(path_dataset + '/processed/'):
+                                os.mkdir(path_dataset + '/processed/')
                             os.mkdir(path_dataset + '/processed/' + direcotry + '/')
                         os.mkdir(path_dataset + '/processed/' + direcotry + '/' + w1 + '/')
 
