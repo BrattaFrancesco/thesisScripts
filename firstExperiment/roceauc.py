@@ -41,7 +41,7 @@ if __name__ == '__main__':
             n_classes = y_bin.shape[1]
             print("N classes: ", n_classes)
             # Fit the model with a 10-fold cross validation method
-            pipe = Pipeline([('scaler', MinMaxScaler()), ('clf', model)])
+            pipe = Pipeline([('clf', model)])
             y_score = cross_val_predict(pipe, X, y, cv=10, method='predict_proba')
             fpr = dict()
             tpr = dict()
