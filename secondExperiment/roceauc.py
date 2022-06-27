@@ -39,9 +39,10 @@ if __name__ == '__main__':
             # Binarize the output
             n_classes = 0
             if "Test1" in file:
-                n_classes = 47
+                n_classes = len(os.listdir("/home/francesco/PycharmProjects/Thesis/secondExperiment/Dataset/Test1/processed"))
             elif "Test2" in file:
-                n_classes = 42
+                n_classes = len(
+                    os.listdir("/home/francesco/PycharmProjects/Thesis/secondExperiment/Dataset/Test2/processed"))
             y_bin = label_binarize(y, classes=range(n_classes))
             print("N classes: ", n_classes)
             # Fit the model with a 10-fold cross validation method
